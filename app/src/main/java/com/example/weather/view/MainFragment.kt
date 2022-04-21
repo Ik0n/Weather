@@ -25,22 +25,25 @@ class MainFragment : Fragment() {
         fun newInstance() = MainFragment()
     }
 
-    private lateinit var viewModel: MainViewModel
+    private val viewModel: MainViewModel by lazy {
+        ViewModelProvider(this).get(MainViewModel::class.java)
+    }
+
     private var isDataSetRus : Boolean = true
 
     private val adapter = MainFragmentAdapter(object : MainFragmentAdapter.OnItemViewClickListener {
         override fun onItemViewClick(weather: Weather) {
             val fragmentManager = activity?.supportFragmentManager
-
-            if (fragmentManager != null) {
-                val bundle = Bundle()
-                bundle.putParcelable(DetailsFragment.BUNDLE_EXTRA, weather)
+            fragmentManager?.let {
+                val bundle = Bundle().also {
+                    it.putParcelable(DetailsFragment.BUNDLE_EXTRA, weather)
+                }
                 fragmentManager.beginTransaction()
                     .add(R.id.container, DetailsFragment.newInstance(bundle))
                     .addToBackStack("")
                     .commitAllowingStateLoss()
             }
-        }
+            }
     })
 
     override fun onCreateView(
@@ -48,43 +51,40 @@ class MainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = MainFragmentBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.mainFragmentRecyclerView.adapter = adapter
-        binding.mainFragmentFAB.setOnClickListener{
-            changeWeatherDataSet()
+        binding.apply {
+            mainFragmentRecyclerView.adapter = adapter
+            mainFragmentFAB.setOnClickListener{
+                changeWeatherDataSet()
+            }
         }
-
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
         val observer = Observer<AppState> {
             renderData(it)
         }
 
-        viewModel.getLiveData().observe(viewLifecycleOwner, observer)
-        viewModel.getWeatherFromLocalSourceRus()
+        viewModel.apply {
+            getLiveData().observe(viewLifecycleOwner, observer)
+            getWeatherFromLocalSourceRus()
+        }
     }
 
-    private fun changeWeatherDataSet() {
+    private fun changeWeatherDataSet()  =
         if (isDataSetRus) {
             viewModel.getWeatherFromLocalSourceWorld()
             binding.mainFragmentFAB.setImageResource(R.drawable.ic_earth)
         } else {
             viewModel.getWeatherFromLocalSourceRus()
             binding.mainFragmentFAB.setImageResource(R.drawable.ic_russia)
-        }
-
-        isDataSetRus = !isDataSetRus
-    }
+        }.also { isDataSetRus = !isDataSetRus }
 
     override fun onDestroyView() {
         super.onDestroyView()
-
         _binding = null
     }
 
@@ -95,22 +95,33 @@ class MainFragment : Fragment() {
                 binding.mainFragmentLoadingLayout.visibility = View.GONE
                 adapter.setWeather(appState.weatherData)
             }
-
-            is AppState.Loading -> {
-                binding.mainFragmentLoadingLayout.visibility = View.VISIBLE
-            }
-
+            is AppState.Loading -> binding.mainFragmentLoadingLayout.visibility = View.VISIBLE
             is AppState.Error -> {
-                binding.mainFragmentLoadingLayout.visibility = View.GONE
-
-                Snackbar
-                    .make(binding.mainFragmentFAB, getString(R.string.error), Snackbar.LENGTH_INDEFINITE)
-                    .setAction(getString(R.string.reload)) {
-                        viewModel.getWeather()
-                    }
-                    .show()
-
+                binding.apply {
+                    mainFragmentLoadingLayout.visibility = View.GONE
+                    mainFragmentFAB.showSnackbar(
+                        getString(R.string.error),
+                        getString(R.string.reload),
+                        { viewModel.getWeatherFromLocalSourceRus() }
+                    )
+                }
             }
         }
+    }
+
+    private fun View.showSnackbar(
+        text : String,
+        actionText : String,
+        action : (View) -> Unit,
+        length : Int = Snackbar.LENGTH_INDEFINITE
+    ) {
+        Snackbar.make(this, text, length).setAction(actionText, action).show()
+    }
+
+    private fun View.showSnackbarWithOutAction (
+        text : String,
+        length : Int
+    ) {
+        Snackbar.make(this, text, length).show()
     }
 }
