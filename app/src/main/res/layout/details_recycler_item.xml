@@ -7,16 +7,22 @@
 
     <TextView
         android:padding="@dimen/margin_15_dp"
-        android:id="@+id/details_recycler_temp"
+        android:id="@+id/details_recycler_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         tools:text="09:00"
         />
 
+    <ImageView
+        android:id="@+id/details_recycler_hours_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
+
     <TextView
         android:padding="@dimen/margin_15_dp"
-        android:id="@+id/details_recycler_time"
+        android:id="@+id/details_recycler_temp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
