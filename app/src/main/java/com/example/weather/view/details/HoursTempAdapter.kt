@@ -1,5 +1,6 @@
 package com.example.weather.view.details
 
+import android.text.format.Time
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +13,7 @@ import com.example.weather.model.HourDTO
 import com.example.weather.model.Weather
 import com.example.weather.model.getHoursTemp
 import com.squareup.picasso.Picasso
+import java.util.*
 
 class HoursTempAdapter : RecyclerView.Adapter<HoursTempAdapter.HourTempHolder>() {
 
@@ -20,8 +22,19 @@ class HoursTempAdapter : RecyclerView.Adapter<HoursTempAdapter.HourTempHolder>()
     inner class HourTempHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(hourDTO: HourDTO?) {
             itemView.apply {
-                findViewById<TextView>(R.id.details_recycler_time).text = hourDTO?.hour.toString()
-                findViewById<TextView>(R.id.details_recycler_temp).text = hourDTO?.temp.toString()
+                hourDTO?.let { hourDTO ->
+                    hourDTO.hour?.let { hour ->
+                        findViewById<TextView>(R.id.details_recycler_time).text =
+                            if (hour.toInt() < 10) "0${hour}:00" else "${hour}:00"
+                    }
+                    hourDTO.temp?.let { temp ->
+                        findViewById<TextView>(R.id.details_recycler_temp).text =
+                            if (temp > 0) "+${temp}°С" else "${temp}°C"
+                    }
+                }
+
+
+
 
                 val temp = "https://yastatic.net/weather/i/icons/funky/dark/" + hourDTO?.icon + ".svg"
                 Picasso.get().load(temp).into(findViewById<ImageView>(R.id.details_recycler_hours_icon))

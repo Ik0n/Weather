@@ -50,7 +50,8 @@ class DetailsService(name: String = "DetailService") : IntentService(name) {
                 URL("https://api.weather.yandex.ru/v2/forecast?" +
                         "lat=${lat}&" +
                         "lon=${lon}&" +
-                        "extra=true")
+                        "extra=true"
+                )
 
             lateinit var urlConnection: HttpsURLConnection
 
