@@ -7,37 +7,29 @@ import kotlinx.android.parcel.Parcelize
 data class Weather(
     val city : City = getDefaultCity(),
     val temperature: Int = 0,
-    val feelsLike: Int = 0
+    val feelsLike: Int = 0,
+    val condition : String = "",
+    val wind_speed : Float = 0f,
+    val wind_dir : String = "",
+    val humidity : Int = 0,
+    val pressure_mm : Int = 0,
+    val icon : String = "",
+    val forecasts : Forecasts = Forecasts(listOf())
+) : Parcelable
+
+@Parcelize
+data class Forecasts(
+    val hours : List<Hour>?
+) : Parcelable
+
+@Parcelize
+data class Hour(
+    val hour : String?,
+    val temp: Int?,
+    val icon: String?
 ) : Parcelable
 
 fun getDefaultCity() = City("Москва", 55.755826, 37.61729990000035)
-
-fun getHoursTemp() = mapOf(
-    Pair("00:00", 0),
-    Pair("01:00", 1),
-    Pair("02:00", 2),
-    Pair("03:00", 3),
-    Pair("04:00", 4),
-    Pair("05:00", 5),
-    Pair("06:00", 6),
-    Pair("07:00", 7),
-    Pair("08:00", 8),
-    Pair("09:00", 9),
-    Pair("10:00", 10),
-    Pair("11:00", 11),
-    Pair("12:00", 12),
-    Pair("13:00", 13),
-    Pair("14:00", 14),
-    Pair("15:00", 15),
-    Pair("16:00", 16),
-    Pair("17:00", 17),
-    Pair("18:00", 18),
-    Pair("19:00", 19),
-    Pair("20:00", 20),
-    Pair("21:00", 21),
-    Pair("22:00", 22),
-    Pair("23:00", 23),
-)
 
 fun getWorldCities() = listOf(
         Weather(City("Лондон", 51.5085300, -0.1257400), 1, 2),
