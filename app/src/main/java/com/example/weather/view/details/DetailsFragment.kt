@@ -1,37 +1,25 @@
 package com.example.weather.view.details
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.example.weather.BuildConfig
 import com.example.weather.R
 import com.example.weather.databinding.FragmentDetailsBinding
 import com.example.weather.model.Weather
-import com.example.weather.model.WeatherDTO
 import com.example.weather.utils.showSnackBar
-import com.example.weather.viewmodel.AppState
 import com.example.weather.viewmodel.DetailsViewModel
-import com.google.android.material.snackbar.Snackbar
-import okhttp3.*
-import java.io.IOException
+import com.example.weather.viewmodel.ResponseState
 import java.text.SimpleDateFormat
 import java.util.*
 
 const val DETAILS_INTENT_FILTER = "DETAILS INTENT FILTER"
-
 const val DETAILS_LOAD_RESULT_EXTRA = "LOAD RESULT"
 const val DETAILS_INTENT_EMPTY_EXTRA = "INTENT IS EMPTY"
 const val DETAILS_DATA_EMPTY_EXTRA = "DATA IS EMPTY"
@@ -84,18 +72,18 @@ class DetailsFragment : Fragment() {
             DetailsFragment().apply { arguments = bundle }
     }
 
-    private fun renderData(appState : AppState) {
-        when(appState) {
-            is AppState.Success -> {
+    private fun renderData(responseState : ResponseState) {
+        when(responseState) {
+            is ResponseState.Success -> {
                 binding.mainView.visibility = View.VISIBLE
                 binding.loadingLayout.visibility = View.GONE
-                setWeather(appState.weatherData[0])
+                setWeather(responseState.weather)
             }
-            is AppState.Loading -> {
+            is ResponseState.Loading -> {
                 binding.mainView.visibility = View.GONE
                 binding.loadingLayout.visibility = View.VISIBLE
             }
-            is AppState.Error -> {
+            is ResponseState.Error -> {
                     binding.loadingLayout.visibility = View.GONE
 
                     binding.mainView.showSnackBar(
@@ -157,12 +145,4 @@ class DetailsFragment : Fragment() {
         viewModel.getWeather(weatherBundle.city.lat, weatherBundle.city.lon)
     }
 
-
-
-    private fun View.showSnackbarWithOutAction (
-        text : String,
-        length : Int
-    ) {
-        Snackbar.make(this, text, length).show()
-    }
 }

@@ -14,7 +14,7 @@ private const val REQUEST_ERROR = "Ошибка запроса на сервер
 private const val CORRUPTED_DATA = "Неполные данные"
 
 class DetailsViewModel(
-    val detailsLiveData : MutableLiveData<AppState> = MutableLiveData(),
+    val detailsLiveData : MutableLiveData<ResponseState> = MutableLiveData(),
     private val detailsRepository: DetailsRepository = DetailsRepositoryImpl(RemoteDataSource())
 ) : ViewModel() {
 
@@ -29,31 +29,37 @@ class DetailsViewModel(
                 if (response.isSuccessful && serverResponse != null) {
                     checkResponse(serverResponse)
                 } else {
-                    AppState.Error(Throwable(SERVER_ERROR))
+                    ResponseState.Error(Throwable(SERVER_ERROR))
                 }
             )
         }
 
         override fun onFailure(call: retrofit2.Call<WeatherDTO>, t: Throwable) {
-            detailsLiveData.postValue(AppState.Error(Throwable(t.message ?: REQUEST_ERROR)))
+            detailsLiveData.postValue(ResponseState.Error(Throwable(t.message ?: REQUEST_ERROR)))
         }
 
-        private fun checkResponse(serverResponse: WeatherDTO): AppState {
+        private fun checkResponse(serverResponse: WeatherDTO): ResponseState {
             val fact = serverResponse.fact
             return if (
                 fact == null ||
                 fact.temp == null ||
                 fact.feels_like == null ||
-                fact.condition.isNullOrEmpty()) {
-                AppState.Error(Throwable(CORRUPTED_DATA))
+                fact.condition.isNullOrEmpty() ||
+                fact.humidity == null ||
+                fact.pressure_mm == null ||
+                fact.wind_dir.isNullOrEmpty() ||
+                fact.wind_speed == null ||
+                fact.icon == null
+            ) {
+                ResponseState.Error(Throwable(CORRUPTED_DATA))
             } else {
-                AppState.Success(convertDtoToModel(serverResponse))
+                ResponseState.Success(convertDtoToModel(serverResponse))
             }
         }
     }
 
     fun getWeather(lat: Double, lon: Double) {
-        detailsLiveData.value = AppState.Loading
+        detailsLiveData.value = ResponseState.Loading
         detailsRepository.getWeatherDetailsFromServer(lat, lon, callback)
     }
 
