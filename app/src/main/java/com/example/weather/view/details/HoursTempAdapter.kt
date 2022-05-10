@@ -1,19 +1,14 @@
 package com.example.weather.view.details
 
-import android.text.format.Time
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.weather.R
 import com.example.weather.model.Forecasts
-import com.example.weather.model.ForecastsDTO
 import com.example.weather.model.Hour
-import com.example.weather.model.HourDTO
-import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.details_recycler_item.view.*
 
 class HoursTempAdapter : RecyclerView.Adapter<HoursTempAdapter.HourTempHolder>() {

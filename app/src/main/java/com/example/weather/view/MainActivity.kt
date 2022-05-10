@@ -1,6 +1,5 @@
 package com.example.weather.view
 
-import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import androidx.appcompat.app.AppCompatActivity
