@@ -5,11 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.weather.R
 import com.example.weather.databinding.HistoryLayoutBinding
+import com.example.weather.model.Weather
 import com.example.weather.utils.showSnackBar
+import com.example.weather.view.details.DetailsFragment
 import com.example.weather.viewmodel.AppState
 import kotlinx.android.synthetic.main.history_layout.*
 
@@ -19,7 +22,21 @@ class HistoryFragment : Fragment() {
     private val viewModel: HistoryViewModel by lazy {
         ViewModelProvider(this).get(HistoryViewModel::class.java)
     }
-    private val adapter: HistoryAdapter by lazy { HistoryAdapter() }
+    private val adapter = HistoryAdapter(object : HistoryAdapter.OnItemViewClick {
+        override fun onItemViewClick(weather: Weather) {
+            val fragmentManager = activity?.supportFragmentManager
+            fragmentManager?.let {
+                val bundle = Bundle().also {
+                    it.putParcelable(DetailsFragment.BUNDLE_EXTRA, weather)
+                }
+                it.beginTransaction()
+                    .add(R.id.container, DetailsFragment.newInstance(bundle))
+                    .addToBackStack("")
+                    .commitAllowingStateLoss()
+            }
+        }
+
+    })
 
     override fun onCreateView(
         inflater: LayoutInflater,

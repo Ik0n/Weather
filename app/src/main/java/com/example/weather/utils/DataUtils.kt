@@ -27,7 +27,7 @@ fun convertDtoToModel(weatherDTO: WeatherDTO): Weather {
 fun convertHistoryEntityToWeather(entityList: List<HistoryEntity>) : List<Weather> {
     return entityList.map {
         Weather(
-            city = City(it.city, 0.0, 0.0),
+            city = City(it.city, it.lat, it.lon),
             temperature = it.temperature,
             condition = it.condition
         )
@@ -39,6 +39,8 @@ fun convertWeatherToHistoryEntity(weather: Weather) : HistoryEntity {
         0,
         weather.city.city,
         weather.temperature,
-        weather.condition
+        weather.condition,
+        weather.city.lat,
+        weather.city.lon
     )
 }

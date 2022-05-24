@@ -9,13 +9,19 @@ import com.example.weather.R
 import com.example.weather.model.Weather
 import kotlinx.android.synthetic.main.history_layout_recycler_item.view.*
 
-class HistoryAdapter : RecyclerView.Adapter<HistoryAdapter.RecyclerItemViewHolder>() {
+class HistoryAdapter(
+    private var onItemViewClick: OnItemViewClick?
+) : RecyclerView.Adapter<HistoryAdapter.RecyclerItemViewHolder>() {
 
     private var data: List<Weather> = arrayListOf()
 
     fun setData(data: List<Weather>) {
         this.data = data
         notifyDataSetChanged()
+    }
+
+    interface OnItemViewClick {
+        fun onItemViewClick(weather: Weather)
     }
 
     inner class RecyclerItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -30,6 +36,9 @@ class HistoryAdapter : RecyclerView.Adapter<HistoryAdapter.RecyclerItemViewHolde
                         Toast.LENGTH_SHORT
                     )
                         .show()
+                }
+                itemView.apply {
+                    setOnClickListener { onItemViewClick?.onItemViewClick(data) }
                 }
             }
         }

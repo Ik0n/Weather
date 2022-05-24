@@ -74,7 +74,6 @@ class MainFragment : Fragment() {
 
         viewModel.apply {
             getLiveData().observe(viewLifecycleOwner, observer)
-            //getWeatherFromLocalSourceRus()
         }
 
         showListOfTowns()
