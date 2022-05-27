@@ -6,9 +6,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.fragment.app.Fragment
 import com.example.weather.R
 import com.example.weather.databinding.MainActivityBinding
 import com.example.weather.history.HistoryFragment
+import com.example.weather.view.contacts.ContentProviderFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: MainActivityBinding
@@ -44,10 +46,19 @@ class MainActivity : AppCompatActivity() {
                         .add(R.id.container, HistoryFragment.newInstance())
                         .addToBackStack("")
                         .commitAllowingStateLoss()
-
                 }
                 true
-            } else -> super.onOptionsItemSelected(item)
+            }
+            R.id.menu_contacts -> {
+                supportFragmentManager.apply {
+                    beginTransaction()
+                        .add(R.id.container, ContentProviderFragment.newInstance())
+                        .addToBackStack("")
+                        .commitAllowingStateLoss()
+                }
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
