@@ -1,16 +1,20 @@
 package com.example.weather.view
 
+import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import androidx.fragment.app.Fragment
 import com.example.weather.R
 import com.example.weather.databinding.MainActivityBinding
 import com.example.weather.history.HistoryFragment
 import com.example.weather.view.contacts.ContentProviderFragment
+import com.example.weather.view.map.MapActivity
+import com.example.weather.view.map.MapsFragment
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: MainActivityBinding
@@ -31,6 +35,14 @@ class MainActivity : AppCompatActivity() {
                 .replace(R.id.container, MainFragment.newInstance())
                 .commitNow()
         }
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                return@OnCompleteListener
+            }
+
+            val token = task.result
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -59,12 +71,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.menu_map -> {
-                supportFragmentManager.apply {
-                    beginTransaction()
-                        .add(R.id.container, MapsFragment.newInstance())
-                        .addToBackStack("")
-                        .commitAllowingStateLoss()
-                }
+                startActivity(Intent(this, MapActivity::class.java))
                 true
             }
             else -> super.onOptionsItemSelected(item)
