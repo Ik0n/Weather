@@ -1,31 +1,25 @@
 package com.example.weather.view.details
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.weather.R
 import com.example.weather.databinding.FragmentDetailsBinding
 import com.example.weather.model.Weather
-import com.example.weather.model.WeatherDTO
-import com.google.android.material.snackbar.Snackbar
-import com.squareup.picasso.Picasso
+import com.example.weather.utils.showSnackBar
+import com.example.weather.viewmodel.DetailsViewModel
+import com.example.weather.viewmodel.ResponseState
 import java.text.SimpleDateFormat
 import java.util.*
 
 const val DETAILS_INTENT_FILTER = "DETAILS INTENT FILTER"
-
 const val DETAILS_LOAD_RESULT_EXTRA = "LOAD RESULT"
 const val DETAILS_INTENT_EMPTY_EXTRA = "INTENT IS EMPTY"
 const val DETAILS_DATA_EMPTY_EXTRA = "DATA IS EMPTY"
@@ -39,74 +33,11 @@ class DetailsFragment : Fragment() {
     private var _binding: FragmentDetailsBinding? = null
     private val binding get() = _binding!!
 
+    private val viewModel: DetailsViewModel by lazy {
+        ViewModelProvider(this).get(DetailsViewModel::class.java)
+    }
+
     private lateinit var weatherBundle : Weather
-
-    private val onLoadListener : WeatherLoader.WeatherLoaderListener =
-        object : WeatherLoader.WeatherLoaderListener {
-        override fun onLoaded(weatherDTO: WeatherDTO) {
-            displayWeather(weatherDTO)
-        }
-
-        override fun onFailed(throwable: Throwable) {
-            throw Throwable(getString(R.string.error))
-        }
-
-    }
-
-    private val loadResultReceiver : BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            when (intent.getStringExtra(DETAILS_LOAD_RESULT_EXTRA)) {
-                DETAILS_URL_MALFORMED_EXTRA -> {
-                    intent.getStringExtra(DETAILS_URL_MALFORMED_EXTRA)?.let {
-                        requireView().showSnackbarWithOutAction(it, Snackbar.LENGTH_SHORT)
-                    }
-                }
-                DETAILS_REQUEST_ERROR_EXTRA -> {
-                    intent.getStringExtra(DETAILS_REQUEST_ERROR_EXTRA)?.let {
-                        requireView().showSnackbarWithOutAction(it, Snackbar.LENGTH_SHORT)
-                    }
-                }
-                DETAILS_RESPONSE_EMPTY_EXTRA -> {
-                    intent.getStringExtra(DETAILS_RESPONSE_EMPTY_EXTRA)?.let {
-                        requireView().showSnackbarWithOutAction(it, Snackbar.LENGTH_SHORT)
-                    }
-                }
-                DETAILS_INTENT_EMPTY_EXTRA -> {
-                    intent.getStringExtra(DETAILS_INTENT_EMPTY_EXTRA)?.let {
-                        requireView().showSnackbarWithOutAction(it, Snackbar.LENGTH_SHORT)
-                    }
-                }
-                DETAILS_DATA_EMPTY_EXTRA -> {
-                    intent.getStringExtra(DETAILS_DATA_EMPTY_EXTRA)?.let {
-                        requireView().showSnackbarWithOutAction(it, Snackbar.LENGTH_SHORT)
-                    }
-                }
-                DETAILS_RESPONSE_SUCCESS_EXTRA -> {
-                    intent.getParcelableExtra<WeatherDTO>(DETAILS_WEATHER_EXTRA)?.let {
-                            displayWeather(it)
-                        }
-                }
-            }
-        }
-
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        context?.let {
-            LocalBroadcastManager.getInstance(it)
-                .registerReceiver(loadResultReceiver, IntentFilter(DETAILS_INTENT_FILTER))
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-
-        context?.let {
-            LocalBroadcastManager.getInstance(it).unregisterReceiver(loadResultReceiver)
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -121,21 +52,12 @@ class DetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         weatherBundle = arguments?.getParcelable<Weather>(BUNDLE_EXTRA) ?: Weather()
-        getWeather()
-    }
 
-    private fun getWeather() {
-        with(binding) {
-            mainView.visibility = View.GONE
-            loadingLayout.visibility = View.VISIBLE
-        }
+        viewModel.detailsLiveData.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
+            renderData(it)
+        })
 
-        context?.let {
-            it.startService(Intent(it, DetailsService::class.java).apply {
-                putExtra(LATITUDE_EXTRA, weatherBundle.city.lat)
-                putExtra(LONGITUDE_EXTRA, weatherBundle.city.lon)
-            })
-        }
+        requestWeather()
     }
 
     override fun onDestroyView() {
@@ -150,7 +72,30 @@ class DetailsFragment : Fragment() {
             DetailsFragment().apply { arguments = bundle }
     }
 
-    private fun displayWeather(weatherDTO: WeatherDTO) {
+    private fun renderData(responseState : ResponseState) {
+        when(responseState) {
+            is ResponseState.Success -> {
+                binding.mainView.visibility = View.VISIBLE
+                binding.loadingLayout.visibility = View.GONE
+                setWeather(responseState.weather)
+            }
+            is ResponseState.Loading -> {
+                binding.mainView.visibility = View.GONE
+                binding.loadingLayout.visibility = View.VISIBLE
+            }
+            is ResponseState.Error -> {
+                    binding.loadingLayout.visibility = View.GONE
+
+                    binding.mainView.showSnackBar(
+                        getString(R.string.error),
+                        getString(R.string.reload),
+                        { requestWeather() }
+                    )
+            }
+        }
+    }
+
+    private fun setWeather(weather: Weather) {
         var context = context
         with(binding) {
             mainView.visibility = View.VISIBLE
@@ -167,36 +112,37 @@ class DetailsFragment : Fragment() {
                 }
             }
 
-            with(binding) {
-                temperatureValue.text = weatherDTO.fact?.temp.toString()
-                feelsLikeValue.text = weatherDTO.fact?.feels_like.toString()
+            temperatureValue.text = weather.temperature.toString()
+            feelsLikeValue.text = weather.feelsLike.toString()
 
-                detailsCondition.text = weatherDTO.fact?.condition.toString()
-                detailsTime.text = SimpleDateFormat("HH:mm").format(Date(System.currentTimeMillis()))
+            detailsCondition.text = weather.condition
+            detailsTime.text = SimpleDateFormat("HH:mm").format(Date(System.currentTimeMillis()))
 
-                val temp = "https://yastatic.net/weather/i/icons/funky/dark/" + weatherDTO.fact?.icon + ".svg"
-                Picasso.get().load(temp).into(detailsIcon)
-
-                wind.text = weatherDTO.fact?.wind_speed.toString() + " " + weatherDTO.fact?.wind_dir.toString()
-                humidity.text = weatherDTO.fact?.humidity.toString()
-                atmosphericPressure.text = weatherDTO.fact?.pressure_mm.toString()
-
-                detailsHoursRecycler.layoutManager = LinearLayoutManager(
-                    context,
-                    LinearLayoutManager.HORIZONTAL,
-                    false
-                )
-                detailsHoursRecycler.adapter = HoursTempAdapter().also {
-                    it.setHoursTemp(weatherDTO?.forecasts?.get(0))
+            weather.icon.let { icon ->
+                context?.let {
+                    Glide
+                        .with(context)
+                        .load("https://yastatic.net/weather/i/icons/funky/dark/$icon.svg")
+                        .into(detailsIcon)
                 }
+            }
+            wind.text = weather.wind_speed.toString() + " " + weather.wind_dir
+            humidity.text = weather.humidity.toString()
+            atmosphericPressure.text = weather.pressure_mm.toString()
+
+            detailsHoursRecycler.layoutManager = LinearLayoutManager(
+                context,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+            detailsHoursRecycler.adapter = HoursTempAdapter().also {
+                it.setHoursTemp(weather.forecasts)
             }
         }
     }
 
-    private fun View.showSnackbarWithOutAction (
-        text : String,
-        length : Int
-    ) {
-        Snackbar.make(this, text, length).show()
+    private fun requestWeather() {
+        viewModel.getWeather(weatherBundle.city.lat, weatherBundle.city.lon)
     }
+
 }

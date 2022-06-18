@@ -1,49 +1,47 @@
 package com.example.weather.view.details
 
-import android.text.format.Time
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.weather.R
-import com.example.weather.model.ForecastsDTO
-import com.example.weather.model.HourDTO
-import com.example.weather.model.Weather
-import com.example.weather.model.getHoursTemp
-import com.squareup.picasso.Picasso
-import java.util.*
+import com.example.weather.model.Forecasts
+import com.example.weather.model.Hour
+import kotlinx.android.synthetic.main.details_recycler_item.view.*
 
 class HoursTempAdapter : RecyclerView.Adapter<HoursTempAdapter.HourTempHolder>() {
 
-    private var hoursTemp : List<HourDTO>? = listOf()
+    private var hoursTemp : List<Hour>? = listOf()
 
     inner class HourTempHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(hourDTO: HourDTO?) {
+        fun bind(hours: Hour?) {
             itemView.apply {
-                hourDTO?.let { hourDTO ->
-                    hourDTO.hour?.let { hour ->
+                hours?.let { hours ->
+                    hours.hour?.let { hour ->
                         findViewById<TextView>(R.id.details_recycler_time).text =
                             if (hour.toInt() < 10) "0${hour}:00" else "${hour}:00"
                     }
-                    hourDTO.temp?.let { temp ->
+                    hours.temp?.let { temp ->
                         findViewById<TextView>(R.id.details_recycler_temp).text =
                             if (temp > 0) "+${temp}°С" else "${temp}°C"
                     }
+                    hours.icon.let { icon ->
+                        Glide
+                            .with(context)
+                            .load("https://yastatic.net/weather/i/icons/funky/dark/$icon.svg")
+                            .into(details_recycler_hours_icon)
+                    }
+
                 }
 
-
-
-
-                val temp = "https://yastatic.net/weather/i/icons/funky/dark/" + hourDTO?.icon + ".svg"
-                Picasso.get().load(temp).into(findViewById<ImageView>(R.id.details_recycler_hours_icon))
             }
         }
     }
 
-    fun setHoursTemp(data: ForecastsDTO?) {
-        hoursTemp = data?.hours
+    fun setHoursTemp(data: Forecasts) {
+        hoursTemp = data.hours
         notifyDataSetChanged()
     }
 
