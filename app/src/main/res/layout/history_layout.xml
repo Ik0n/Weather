@@ -4,8 +4,20 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/fragmentBackground"
+    android:background="@color/white"
     android:fitsSystemWindows="true">
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/historyFragmentFAB"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/fab_margin"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="@color/purple_200"
+        android:src="@drawable/ic_baseline_delete_24"
+        app:layout_constraintBottom_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:maxImageSize="@dimen/fab_location_icon_size" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/historyLayoutRecyclerView"

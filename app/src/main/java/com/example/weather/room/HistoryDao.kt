@@ -24,6 +24,9 @@ interface HistoryDao {
     @Query("DELETE FROM HistoryEntity WHERE id = :id")
     fun deleteById(id: Long)
 
+    @Query("DELETE FROM HistoryEntity")
+    fun deleteAll()
+
     @Query("SELECT id, city, temperature FROM HistoryEntity")
     fun getHistoryCursor(): Cursor
 

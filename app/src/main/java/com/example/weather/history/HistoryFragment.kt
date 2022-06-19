@@ -54,6 +54,12 @@ class HistoryFragment : Fragment() {
             renderData(it)
         })
         viewModel.getAllHistory()
+
+        binding.historyFragmentFAB.setOnClickListener {
+            viewModel.deleteAllHistory()
+            activity?.supportFragmentManager?.beginTransaction()?.remove(this)?.commit()
+        }
+
     }
 
     private fun renderData(appState: AppState) {
