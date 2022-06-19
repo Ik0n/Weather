@@ -8,4 +8,5 @@
     <string name="reload">Reload</string>
     <string name="temperature_cel">%s ⁰С</string>
     <string name="temperature_hour">0%s00</string>
+    <string name="menu_title_history">history</string>
 </resources>

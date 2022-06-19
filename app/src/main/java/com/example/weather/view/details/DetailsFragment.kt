@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.weather.R
 import com.example.weather.databinding.FragmentDetailsBinding
+import com.example.weather.model.City
 import com.example.weather.model.Weather
 import com.example.weather.utils.showSnackBar
 import com.example.weather.viewmodel.DetailsViewModel
@@ -76,15 +77,15 @@ class DetailsFragment : Fragment() {
         when(responseState) {
             is ResponseState.Success -> {
                 binding.mainView.visibility = View.VISIBLE
-                binding.loadingLayout.visibility = View.GONE
+                binding.includedLoadingLayout.loadingLayout.visibility = View.GONE
                 setWeather(responseState.weather)
             }
             is ResponseState.Loading -> {
                 binding.mainView.visibility = View.GONE
-                binding.loadingLayout.visibility = View.VISIBLE
+                binding.includedLoadingLayout.loadingLayout.visibility = View.VISIBLE
             }
             is ResponseState.Error -> {
-                    binding.loadingLayout.visibility = View.GONE
+                    binding.includedLoadingLayout.loadingLayout.visibility = View.GONE
 
                     binding.mainView.showSnackBar(
                         getString(R.string.error),
@@ -97,9 +98,11 @@ class DetailsFragment : Fragment() {
 
     private fun setWeather(weather: Weather) {
         var context = context
+        val city = weatherBundle.city
+        saveCity(city, weather)
         with(binding) {
             mainView.visibility = View.VISIBLE
-            loadingLayout.visibility = View.GONE
+            includedLoadingLayout.loadingLayout.visibility = View.GONE
 
             weatherBundle.city.also {
                 with(binding) {
@@ -143,6 +146,16 @@ class DetailsFragment : Fragment() {
 
     private fun requestWeather() {
         viewModel.getWeather(weatherBundle.city.lat, weatherBundle.city.lon)
+    }
+
+    private fun saveCity(city: City, weather: Weather) {
+        viewModel.saveCityToDB(
+            Weather(
+                city = city,
+                temperature = weather.temperature,
+                condition = weather.condition
+            )
+        )
     }
 
 }
