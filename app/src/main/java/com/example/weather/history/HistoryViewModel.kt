@@ -15,4 +15,9 @@ class HistoryViewModel(
         historyLiveData.value = AppState.Success(historyRepository.getAllHistory())
     }
 
+    fun deleteAllHistory() {
+        historyLiveData.value = AppState.Loading
+        historyRepository.deleteAll()
+    }
+
 }
